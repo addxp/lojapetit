@@ -27,18 +27,30 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLogin = request.nextUrl.pathname.startsWith("/login");
+  const path = request.nextUrl.pathname;
+  const isLogin = path.startsWith("/login");
+  const isNoAccess = path.startsWith("/sem-acesso");
 
-  if (!user && !isLogin) {
+  const go = (to: string) => {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = to;
     return NextResponse.redirect(url);
+  };
+
+  if (!user) {
+    return isLogin ? response : go("/login");
   }
-  if (user && isLogin) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
+
+  // Conta criada, mas só tem acesso quem virou dona (usou um código de convite).
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const hasAccess = !!profile;
+
+  if (!hasAccess) return isNoAccess ? response : go("/sem-acesso");
+  if (isLogin || isNoAccess) return go("/");
   return response;
 }
 
