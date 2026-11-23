@@ -34,7 +34,10 @@ export async function middleware(request: NextRequest) {
   const go = (to: string) => {
     const url = request.nextUrl.clone();
     url.pathname = to;
-    return NextResponse.redirect(url);
+    const redirect = NextResponse.redirect(url);
+    // mantém os cookies de sessão renovados também nos redirecionamentos
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
+    return redirect;
   };
 
   if (!user) {
@@ -42,11 +45,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // Conta criada, mas só tem acesso quem virou dona (usou um código de convite).
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("user_id")
     .eq("user_id", user.id)
     .maybeSingle();
+  // falha momentânea de rede/banco não deve expulsar ninguém (o RLS segue protegendo os dados)
+  if (profileError) return response;
   const hasAccess = !!profile;
 
   if (!hasAccess) return isNoAccess ? response : go("/sem-acesso");
