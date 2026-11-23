@@ -5,7 +5,7 @@ import { ImageIcon, Pencil, Plus, Search, Trash2, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { brl, cx, errMsg } from "@/lib/format";
 import { Empty, Field, Loading, Modal, PageHeader, Spinner } from "@/components/ui";
-import { useToast } from "@/components/providers";
+import { useConfirm, useToast } from "@/components/providers";
 
 const supabase = createClient();
 
@@ -42,6 +42,7 @@ const newRow = (over: Partial<Row> = {}): Row => ({
 
 export default function ProdutosPage() {
   const toast = useToast();
+  const confirm = useConfirm();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Option[]>([]);
   const [collections, setCollections] = useState<Option[]>([]);
@@ -94,6 +95,20 @@ export default function ProdutosPage() {
     const { error } = await supabase.from("products").update({ active: !p.active }).eq("id", p.id);
     if (error) return toast.error(errMsg(error));
     toast.success(p.active ? "Produto inativado" : "Produto reativado");
+    load();
+  }
+
+  async function removeProduct(p: Product) {
+    const ok = await confirm({
+      title: "Excluir produto",
+      message: `Excluir "${p.name}" com todas as variações, estoque e histórico de movimentações e compras dele? As vendas já feitas continuam nos relatórios. Esta ação não pode ser desfeita. Para apenas tirar de venda, use Inativar.`,
+      confirmLabel: "Excluir produto",
+      danger: true,
+    });
+    if (!ok) return;
+    const { error } = await supabase.rpc("delete_product", { p_product_id: p.id });
+    if (error) return toast.error(errMsg(error));
+    toast.success("Produto excluído");
     load();
   }
 
@@ -211,9 +226,14 @@ export default function ProdutosPage() {
                   </div>
                   <div className="mt-3 flex items-center justify-between text-xs text-stone-400">
                     <span>{total} peças em estoque</span>
-                    <button className="font-medium text-stone-500 hover:text-stone-800" onClick={() => toggleActive(p)}>
-                      {p.active ? "Inativar" : "Reativar"}
-                    </button>
+                    <span className="flex gap-3">
+                      <button className="font-medium text-stone-500 hover:text-stone-800" onClick={() => toggleActive(p)}>
+                        {p.active ? "Inativar" : "Reativar"}
+                      </button>
+                      <button className="font-medium text-red-500 hover:text-red-700" onClick={() => removeProduct(p)}>
+                        Excluir
+                      </button>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -225,6 +245,7 @@ export default function ProdutosPage() {
       {editing && (
         <ProductForm
           product={editing === "new" ? null : editing}
+          onChanged={load}
           categories={categories}
           collections={collections}
           onListsChanged={loadLists}
@@ -293,6 +314,7 @@ function ProductForm({
   onListsChanged,
   onClose,
   onSaved,
+  onChanged,
 }: {
   product: Product | null;
   categories: Option[];
@@ -300,8 +322,10 @@ function ProductForm({
   onListsChanged: () => void;
   onClose: () => void;
   onSaved: () => void;
+  onChanged: () => void;
 }) {
   const toast = useToast();
+  const confirm = useConfirm();
   const isEdit = !!product;
   const singleExisting =
     !!product && product.product_variants.length === 1 && product.product_variants[0].size === "Único" && !product.product_variants[0].color;
@@ -325,6 +349,25 @@ function ProductForm({
 
   const updateRow = (key: string, patch: Partial<Row>) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+
+  async function removeVariant(r: Row) {
+    if (!r.id) return;
+    const ok = await confirm({
+      title: "Excluir variação",
+      message: `Excluir ${r.size}${r.color ? " " + r.color : ""} (${r.stock} em estoque) e o histórico de estoque dela? Esta ação não pode ser desfeita.`,
+      confirmLabel: "Excluir variação",
+      danger: true,
+    });
+    if (!ok) return;
+    const { error } = await supabase.rpc("delete_variant", { p_variant_id: r.id });
+    if (error) return toast.error(errMsg(error));
+    toast.success("Variação excluída");
+    setRows((rs) => {
+      const next = rs.filter((x) => x.key !== r.key);
+      return next.length ? next : [newRow()];
+    });
+    onChanged();
+  }
 
   function pickFile(f: File | null) {
     if (!f) return;
@@ -547,7 +590,7 @@ function ProductForm({
                   <option key={s} value={s} />
                 ))}
               </datalist>
-              <div className="hidden grid-cols-[1fr_1fr_5rem_5rem_2.5rem] gap-2 text-xs text-stone-500 sm:grid">
+              <div className="hidden grid-cols-[1fr_1fr_5rem_5rem_5.5rem] gap-2 text-xs text-stone-500 sm:grid">
                 <span>Tamanho</span>
                 <span>Cor</span>
                 <span>{isEdit ? "Estoque" : "Qtd."}</span>
@@ -555,7 +598,7 @@ function ProductForm({
                 <span />
               </div>
               {rows.map((r) => (
-                <div key={r.key} className={cx("grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_5rem_5rem_2.5rem]", !r.active && "opacity-50")}>
+                <div key={r.key} className={cx("grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_5rem_5rem_5.5rem]", !r.active && "opacity-50")}>
                   <input list="sizes" className="input" placeholder="Tamanho" value={r.size} onChange={(e) => updateRow(r.key, { size: e.target.value })} />
                   <input className="input" placeholder="Cor (opcional)" value={r.color} onChange={(e) => updateRow(r.key, { color: e.target.value })} />
                   <input
@@ -569,14 +612,19 @@ function ProductForm({
                   />
                   <input type="number" min="0" className="input" title="Estoque mínimo" value={r.min_stock} onChange={(e) => updateRow(r.key, { min_stock: Number(e.target.value) })} />
                   {r.id ? (
-                    <button
-                      type="button"
-                      className="btn-ghost btn-sm"
-                      title={r.active ? "Inativar variação" : "Reativar variação"}
-                      onClick={() => updateRow(r.key, { active: !r.active })}
-                    >
-                      {r.active ? "Off" : "On"}
-                    </button>
+                    <div className="flex items-center">
+                      <button
+                        type="button"
+                        className="btn-ghost btn-sm"
+                        title={r.active ? "Inativar variação" : "Reativar variação"}
+                        onClick={() => updateRow(r.key, { active: !r.active })}
+                      >
+                        {r.active ? "Off" : "On"}
+                      </button>
+                      <button type="button" className="btn-ghost btn-sm text-red-500" aria-label="Excluir variação" onClick={() => removeVariant(r)}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   ) : (
                     <button
                       type="button"
