@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { brl, dateBR, errMsg } from "@/lib/format";
 import { Empty, Field, Loading, Modal, PageHeader, Spinner } from "@/components/ui";
-import { useToast } from "@/components/providers";
+import { useConfirm, useToast } from "@/components/providers";
 
 const supabase = createClient();
 
@@ -13,6 +13,7 @@ type Supplier = { id: string; name: string; contact: string | null; products_sup
 
 export default function FornecedoresPage() {
   const toast = useToast();
+  const confirm = useConfirm();
   const [rows, setRows] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Supplier | "new" | null>(null);
@@ -28,6 +29,20 @@ export default function FornecedoresPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function remove(s: Supplier) {
+    const ok = await confirm({
+      title: "Excluir fornecedor",
+      message: `Excluir "${s.name}"? As compras dele continuam no histórico, apenas sem fornecedor.`,
+      confirmLabel: "Excluir",
+      danger: true,
+    });
+    if (!ok) return;
+    const { error } = await supabase.from("suppliers").delete().eq("id", s.id);
+    if (error) return toast.error(errMsg(error));
+    toast.success("Fornecedor excluído");
+    load();
+  }
 
   return (
     <>
@@ -67,6 +82,9 @@ export default function FornecedoresPage() {
                     </button>
                     <button className="btn-ghost btn-sm" onClick={() => setEditing(s)} aria-label="Editar">
                       <Pencil size={14} />
+                    </button>
+                    <button className="btn-ghost btn-sm text-red-500" onClick={() => remove(s)} aria-label="Excluir">
+                      <Trash2 size={14} />
                     </button>
                   </td>
                 </tr>
@@ -182,3 +200,4 @@ function SupplierHistory({ supplier, onClose }: { supplier: Supplier; onClose: (
     </Modal>
   );
 }
+
