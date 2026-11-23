@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pencil, Plus, Search } from "lucide-react";
+import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { brl, cx, dateTimeBR, errMsg, num } from "@/lib/format";
 import { Empty, Field, Loading, Modal, PageHeader, Spinner } from "@/components/ui";
-import { useToast } from "@/components/providers";
+import { useConfirm, useToast } from "@/components/providers";
 
 const supabase = createClient();
 
@@ -13,6 +13,7 @@ type Customer = { id: string; name: string; phone: string | null; total_spent: n
 
 export default function ClientesPage() {
   const toast = useToast();
+  const confirm = useConfirm();
   const [rows, setRows] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -43,6 +44,23 @@ export default function ClientesPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function remove(c: Customer) {
+    if (c.pending > 0) {
+      return toast.error("Este cliente tem valores pendentes de fiado. Receba ou cancele essas vendas antes de excluir.");
+    }
+    const ok = await confirm({
+      title: "Excluir cliente",
+      message: `Excluir "${c.name}"? As vendas dele continuam no histórico, apenas sem vínculo com o cliente.`,
+      confirmLabel: "Excluir",
+      danger: true,
+    });
+    if (!ok) return;
+    const { error } = await supabase.from("customers").delete().eq("id", c.id);
+    if (error) return toast.error(errMsg(error));
+    toast.success("Cliente excluído");
+    load();
+  }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -96,6 +114,9 @@ export default function ClientesPage() {
                     </button>
                     <button className="btn-ghost btn-sm" onClick={() => setEditing(c)} aria-label="Editar">
                       <Pencil size={14} />
+                    </button>
+                    <button className="btn-ghost btn-sm text-red-500" onClick={() => remove(c)} aria-label="Excluir">
+                      <Trash2 size={14} />
                     </button>
                   </td>
                 </tr>
@@ -208,3 +229,4 @@ function CustomerHistory({ customer, onClose }: { customer: Customer; onClose: (
     </Modal>
   );
 }
+
