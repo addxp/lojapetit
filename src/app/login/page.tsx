@@ -37,8 +37,8 @@ function IconInput({
   return (
     <div className="relative">
       <Icon size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-      <input {...props} className={cx("input !pl-10", right && "!pr-11", className)} />
-      {right && <div className="absolute right-1.5 top-1/2 -translate-y-1/2">{right}</div>}
+      <input {...props} className={cx("input !pl-10", !!right && "!pr-11", className)} />
+      {!!right && <div className="absolute right-1.5 top-1/2 -translate-y-1/2">{right}</div>}
     </div>
   );
 }
