@@ -700,6 +700,23 @@ function SaleDetail({ id, onClose, onChanged }: { id: string; onClose: () => voi
     run(() => supabase.rpc("receive_fiado", { p_sale_id: id, p_amount: v, p_method: payMethod }), "Recebimento registrado");
   }
 
+  async function removeSale() {
+    const ok = await confirm({
+      title: "Excluir venda",
+      message: "A venda cancelada e os pagamentos dela serão apagados definitivamente do histórico. Esta ação não pode ser desfeita.",
+      confirmLabel: "Excluir",
+      danger: true,
+    });
+    if (!ok) return;
+    setBusy(true);
+    const { error } = await supabase.rpc("delete_sale", { p_sale_id: id });
+    setBusy(false);
+    if (error) return toast.error(errMsg(error));
+    toast.success("Venda excluída");
+    onChanged();
+    onClose();
+  }
+
   const canAct = sale && sale.status !== "cancelada";
 
   return (
@@ -842,6 +859,13 @@ function SaleDetail({ id, onClose, onChanged }: { id: string; onClose: () => voi
                   </button>
                 </>
               )}
+            </div>
+          )}
+          {sale.status === "cancelada" && (
+            <div className="border-t border-stone-100 pt-4">
+              <button className="btn-danger" disabled={busy} onClick={removeSale}>
+                Excluir definitivamente
+              </button>
             </div>
           )}
         </div>
