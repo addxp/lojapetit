@@ -1,0 +1,182 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────── Design tokens (canais RGB p/ suportar opacidade) ───────── */
+:root {
+  color-scheme: light;
+  /* superfícies */
+  --surface: 248 250 252; /* #F8FAFC fundo geral */
+  --sidebar: 255 255 255; /* #FFFFFF */
+  --card: 255 255 255; /* #FFFFFF */
+  --shadow: 17 24 39;
+  /* escala neutra (stone) — 200 = borda, 500 = texto secundário, 900 = texto principal */
+  --stone-50: 248 250 252;
+  --stone-100: 241 245 249;
+  --stone-200: 229 231 235; /* #E5E7EB */
+  --stone-300: 209 213 219;
+  --stone-400: 156 163 175;
+  --stone-500: 107 114 128; /* #6B7280 */
+  --stone-600: 75 85 99;
+  --stone-700: 55 65 81;
+  --stone-800: 31 41 55;
+  --stone-900: 17 24 39; /* #111827 */
+  /* verde principal #286347 = brand-600 */
+  --brand-50: 241 247 243;
+  --brand-100: 221 235 227;
+  --brand-200: 187 215 200;
+  --brand-300: 143 188 165;
+  --brand-400: 94 156 124;
+  --brand-500: 60 128 96;
+  --brand-600: 40 99 71;
+  --brand-700: 33 79 58;
+  --brand-800: 27 64 48;
+  --brand-900: 22 51 38;
+  --chart-grid: #e5e7eb;
+  --chart-axis: #6b7280;
+  --chart-a: #286347;
+  --chart-b: #d4a24c;
+  --chart-c: #94a3b8;
+}
+
+.dark {
+  color-scheme: dark;
+  --surface: 17 24 39; /* #111827 */
+  --sidebar: 15 23 42; /* #0F172A */
+  --card: 31 41 55; /* #1F2937 */
+  --shadow: 0 0 0;
+  /* escala neutra invertida */
+  --stone-50: 17 24 39;
+  --stone-100: 39 50 68;
+  --stone-200: 55 65 81; /* #374151 */
+  --stone-300: 75 85 99;
+  --stone-400: 107 114 128;
+  --stone-500: 156 163 175; /* #9CA3AF */
+  --stone-600: 209 213 219;
+  --stone-700: 229 231 235;
+  --stone-800: 243 244 246;
+  --stone-900: 249 250 251; /* #F9FAFB */
+  --brand-50: 22 39 31;
+  --brand-100: 27 51 40;
+  --brand-200: 36 80 58;
+  --brand-300: 74 156 114;
+  --brand-400: 99 176 135;
+  --brand-500: 120 190 152;
+  --brand-600: 40 99 71; /* #286347 */
+  --brand-700: 110 189 146; /* usado como texto/realce no escuro */
+  --brand-800: 150 208 176;
+  --brand-900: 190 228 208;
+  --chart-grid: #374151;
+  --chart-axis: #9ca3af;
+  --chart-a: #4aa175;
+  --chart-b: #e0b25a;
+  --chart-c: #94a3b8;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    @apply bg-surface;
+  }
+  body {
+    @apply bg-surface text-stone-900 antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  ::selection {
+    @apply bg-brand-200 text-stone-900;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500/60 ring-offset-2 ring-offset-surface;
+  }
+  /* scrollbar discreta */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--stone-300)) transparent;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-stone-200 bg-card shadow-soft;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white shadow-sm hover:brightness-110;
+  }
+  .btn-secondary {
+    @apply btn border border-stone-200 bg-card text-stone-700 hover:bg-stone-100;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-ghost {
+    @apply btn text-stone-600 hover:bg-stone-100;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .btn-icon {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-xl text-stone-500 transition hover:bg-stone-100 hover:text-stone-900;
+  }
+  .input {
+    @apply w-full rounded-xl border border-stone-200 bg-card px-3.5 py-2.5 text-base text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:bg-stone-100 sm:text-sm;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium text-stone-500;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .tbl {
+    @apply w-full text-left text-sm;
+  }
+  .tbl thead {
+    @apply bg-stone-50/60;
+  }
+  .tbl th {
+    @apply whitespace-nowrap border-b border-stone-200 px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-stone-500;
+  }
+  .tbl td {
+    @apply border-b border-stone-200/60 px-4 py-3 align-middle;
+  }
+  .tbl tbody tr {
+    @apply transition-colors;
+  }
+  .tbl tbody tr:hover {
+    @apply bg-stone-100/60;
+  }
+  .tbl tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-stone-200/70;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(90deg, transparent, rgb(var(--card) / 0.55), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+}
+
+/* ───────── Tons semânticos (alerta/sucesso/info) legíveis nos dois temas ───────── */
+.dark .bg-red-50 { background-color: rgb(239 68 68 / 0.14); }
+.dark .bg-amber-50 { background-color: rgb(245 158 11 / 0.14); }
+.dark .bg-sky-50 { background-color: rgb(14 165 233 / 0.14); }
+.dark .text-red-700, .dark .text-red-600 { color: #fca5a5; }
+.dark .text-red-500 { color: #f87171; }
+.dark .text-amber-800, .dark .text-amber-700 { color: #fcd34d; }
+.dark .text-amber-600, .dark .text-amber-500 { color: #fbbf24; }
+.dark .text-sky-700, .dark .text-sky-600 { color: #7dd3fc; }
+.dark .btn-danger { color: #fff; }
+.dark .btn-danger, .dark .bg-red-600, .dark .bg-red-700 { color: #fff; }
+
+/* respeita usuários que preferem menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
