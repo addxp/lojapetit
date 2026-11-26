@@ -1,0 +1,209 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────── Design tokens (canais RGB p/ suportar opacidade) ───────── */
+:root {
+  color-scheme: light;
+  --surface: 246 248 251; /* #F6F8FB */
+  --sidebar: 255 255 255;
+  --card: 255 255 255;
+  --shadow: 15 23 42;
+  /* neutros: cinza azulado (slate) */
+  --stone-50: 246 248 251;
+  --stone-100: 238 242 247;
+  --stone-200: 226 232 240; /* borda */
+  --stone-300: 203 213 225;
+  --stone-400: 148 163 184;
+  --stone-500: 100 116 139; /* texto secundário */
+  --stone-600: 71 85 105;
+  --stone-700: 51 65 85;
+  --stone-800: 30 41 59;
+  --stone-900: 15 23 42; /* texto principal */
+  /* verde da marca: 600 = #286347 */
+  --brand-50: 241 247 243;
+  --brand-100: 223 238 229;
+  --brand-200: 187 215 200;
+  --brand-300: 143 188 165;
+  --brand-400: 94 156 124;
+  --brand-500: 60 128 96;
+  --brand-600: 40 99 71;
+  --brand-700: 33 79 58;
+  --brand-800: 27 64 48;
+  --brand-900: 22 51 38;
+}
+
+.dark {
+  color-scheme: dark;
+  --surface: 11 17 32; /* #0B1120 azul-marinho profundo */
+  --sidebar: 9 14 27; /* #090E1B */
+  --card: 16 24 43; /* #10182B */
+  --shadow: 0 0 0;
+  --stone-50: 11 17 32;
+  --stone-100: 22 32 54; /* superfície elevada / hover */
+  --stone-200: 33 45 71; /* borda sutil */
+  --stone-300: 51 65 95;
+  --stone-400: 92 107 136;
+  --stone-500: 140 152 176; /* texto secundário */
+  --stone-600: 180 190 209;
+  --stone-700: 203 211 225;
+  --stone-800: 226 232 242;
+  --stone-900: 241 245 251; /* texto principal */
+  --brand-50: 14 38 31;
+  --brand-100: 17 52 41;
+  --brand-200: 24 80 62;
+  --brand-300: 40 125 94;
+  --brand-400: 62 160 120;
+  --brand-500: 86 187 142;
+  --brand-600: 40 99 71; /* botões (#286347) */
+  --brand-700: 114 205 160; /* realces/ texto no escuro */
+  --brand-800: 154 224 189;
+  --brand-900: 196 240 217;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    overflow-x: clip;
+    @apply bg-surface;
+  }
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+    @apply bg-surface text-stone-900 antialiased;
+    font-feature-settings: "cv11", "ss01", "calt";
+    letter-spacing: -0.003em;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  h1, h2, h3 { letter-spacing: -0.012em; }
+  ::selection {
+    @apply bg-brand-400/30 text-stone-900;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500/60 ring-offset-2 ring-offset-surface;
+  }
+  /* scrollbar discreta */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--stone-300)) transparent;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-stone-200 bg-card shadow-soft;
+  }
+  .dark .card {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:brightness-110;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(var(--shadow) / 0.25);
+  }
+  .btn-secondary {
+    @apply btn border border-stone-200 bg-card text-stone-700 hover:border-stone-300 hover:bg-stone-100;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-ghost {
+    @apply btn text-stone-600 hover:bg-stone-100 hover:text-stone-900;
+  }
+  .btn-sm {
+    @apply px-2.5 py-1.5 text-xs;
+  }
+  .btn-icon {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-lg text-stone-500 transition hover:bg-stone-100 hover:text-stone-900;
+  }
+  .input {
+    @apply w-full min-w-0 rounded-lg border border-stone-200 bg-card px-3 py-2 text-base text-stone-900 outline-none transition placeholder:text-stone-400 hover:border-stone-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:bg-stone-100 sm:text-sm;
+  }
+  .dark .input {
+    @apply bg-stone-50;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium text-stone-500;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium;
+  }
+  .kbd {
+    @apply inline-flex items-center rounded border border-stone-200 bg-stone-100 px-1.5 py-0.5 font-sans text-[10px] font-medium text-stone-500;
+  }
+  .tbl {
+    @apply w-full text-left text-sm;
+  }
+  .tbl thead {
+    @apply bg-stone-50/70;
+  }
+  .tbl th {
+    @apply whitespace-nowrap border-b border-stone-200 px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-stone-500;
+  }
+  .tbl td {
+    @apply border-b border-stone-200/60 px-4 py-3 align-middle;
+  }
+  .tbl tbody tr {
+    @apply transition-colors;
+  }
+  .tbl tbody tr:hover {
+    @apply bg-stone-100/50;
+  }
+  .tbl tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-stone-200/60;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(90deg, transparent, rgb(var(--stone-300) / 0.35), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+}
+
+/* ───────── Tons semânticos (alerta/sucesso/info) legíveis nos dois temas ───────── */
+.dark .bg-red-50 { background-color: rgb(239 68 68 / 0.14); }
+.dark .bg-amber-50 { background-color: rgb(245 158 11 / 0.14); }
+.dark .bg-sky-50 { background-color: rgb(14 165 233 / 0.14); }
+.dark .text-red-700, .dark .text-red-600 { color: #fca5a5; }
+.dark .text-red-500 { color: #f87171; }
+.dark .text-amber-800, .dark .text-amber-700 { color: #fcd34d; }
+.dark .text-amber-600, .dark .text-amber-500 { color: #fbbf24; }
+.dark .text-sky-700, .dark .text-sky-600 { color: #7dd3fc; }
+.dark .text-brand-600 { color: rgb(var(--brand-700)); }
+.dark .border-brand-600 { border-color: rgb(var(--brand-500)); }
+.dark .btn-danger { color: #fff; }
+.dark .btn-danger, .dark .bg-red-600, .dark .bg-red-700 { color: #fff; }
+
+/* ───────── Refinos de toque e telas pequenas ───────── */
+@media (pointer: coarse) {
+  .btn-sm { min-height: 2.25rem; }
+  .btn-icon { min-width: 2.5rem; min-height: 2.5rem; }
+}
+@media (max-width: 640px) {
+  .tbl th, .tbl td { padding-left: 0.75rem; padding-right: 0.75rem; }
+}
+/* sombra lateral indica que a tabela rola na horizontal */
+.card.overflow-x-auto {
+  background-image:
+    linear-gradient(to right, rgb(var(--card)) 30%, transparent),
+    linear-gradient(to left, rgb(var(--card)) 30%, transparent),
+    radial-gradient(farthest-side at 0 50%, rgb(var(--shadow) / 0.14), transparent),
+    radial-gradient(farthest-side at 100% 50%, rgb(var(--shadow) / 0.14), transparent);
+  background-position: 0 0, 100% 0, 0 0, 100% 0;
+  background-repeat: no-repeat;
+  background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
+/* respeita usuários que preferem menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
